@@ -82,7 +82,7 @@ export default function Example() {
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
             <div className="hidden md:flex items-center space-x-3 ml-auto">
-              <Link href="/signin">
+              <Link href="/login">
                 <button
                   className="px-4 py-2 rounded-md text-sm border transition text-blue-900 hover:bg-blue-900 hover:text-white"
                 >
@@ -90,7 +90,7 @@ export default function Example() {
                 </button>
               </Link>
 
-              <Link href="/signup">
+              <Link href="/register">
                 <button
                   className="px-4 py-2 rounded-md text-sm border transition bg-blue-900 text-white hover:bg-white hover:text-blue-900"
                 >

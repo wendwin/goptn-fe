@@ -1,89 +1,106 @@
 "use client";
 
-import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Shield, Phone } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-
+import { useState } from "react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Shield,
+  Phone,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../components/ui/dialog";
+import { registerStudent } from "../../lib/auth/register";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    no_telp: '',
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    privacy: ''
+    name: "",
+    email: "",
+    no_telp: '',
+    password: "",
+    confirmPassword: "",
+    privacy: "",
   });
 
   const validateForm = () => {
     const newErrors = {
-      name: '',
-      email: '',
-      phone: '',
-      password: '',
-      confirmPassword: '',
-      privacy: ''
+      name: "",
+      email: "",
+      no_telp: '',
+      password: "",
+      confirmPassword: "",
+      privacy: "",
     };
     let isValid = true;
 
     // Validate name
     if (!formData.name.trim()) {
-      newErrors.name = 'Nama lengkap harus diisi';
+      newErrors.name = "Nama lengkap harus diisi";
       isValid = false;
     }
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
-      newErrors.email = 'Email harus diisi';
+      newErrors.email = "Email harus diisi";
       isValid = false;
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Format email tidak valid';
+      newErrors.email = "Format email tidak valid";
       isValid = false;
     }
 
     // Validate phone
     const phoneRegex = /^[0-9]{10,13}$/;
-    if (!formData.phone) {
-      newErrors.phone = 'Nomor telepon harus diisi';
+    if (!formData.no_telp) {
+      newErrors.no_telp = 'Nomor telepon harus diisi';
       isValid = false;
-    } else if (!phoneRegex.test(formData.phone.replace(/[\s-]/g, ''))) {
-      newErrors.phone = 'Nomor telepon tidak valid (10-13 digit)';
+    } else if (!phoneRegex.test(formData.no_telp.replace(/[\s-]/g, ''))) {
+      newErrors.no_telp = 'Nomor telepon tidak valid (10-13 digit)';
       isValid = false;
     }
 
     // Validate password
     if (!formData.password) {
-      newErrors.password = 'Password harus diisi';
+      newErrors.password = "Password harus diisi";
       isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password minimal 6 karakter';
+      newErrors.password = "Password minimal 6 karakter";
       isValid = false;
     }
 
     // Validate confirm password
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Konfirmasi password harus diisi';
+      newErrors.confirmPassword = "Konfirmasi password harus diisi";
       isValid = false;
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Password tidak cocok';
+      newErrors.confirmPassword = "Password tidak cocok";
       isValid = false;
     }
 
     // Validate privacy policy
     if (!acceptPrivacy) {
-      newErrors.privacy = 'Anda harus menyetujui Kebijakan Privasi';
+      newErrors.privacy = "Anda harus menyetujui Kebijakan Privasi";
       isValid = false;
     }
 
@@ -91,27 +108,41 @@ export default function Register() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // Save user data to localStorage
-      localStorage.setItem('userName', formData.name);
-      localStorage.setItem('userEmail', formData.email);
-      localStorage.setItem('userPhone', formData.phone);
-      
-      // Simulate registration
-      alert('Pendaftaran berhasil! Silakan login dengan akun Anda.');
-    //   onRegisterSuccess();
+
+    if (!validateForm()) return;
+
+    try {
+      const response = await registerStudent({
+        name: formData.name,
+        email: formData.email,
+        no_telp: formData.no_telp,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+      });
+
+      console.log("Register success:", response);
+
+      alert("Pendaftaran berhasil! Silakan login.");
+
+      router.push("/login");
+    } catch (err) {
+    let message = "Terjadi kesalahan";
+
+    if (err instanceof Error) {
+      message = err.message || message;
     }
+    alert(message);
+  }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -147,8 +178,8 @@ export default function Register() {
                   placeholder="Masukkan nama lengkap"
                   className={`w-full pl-12 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all ${
                     errors.name
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-200 focus:border-purple-500'
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-purple-500"
                   }`}
                 />
               </div>
@@ -159,9 +190,7 @@ export default function Register() {
 
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -172,8 +201,8 @@ export default function Register() {
                   placeholder="nama@email.com"
                   className={`w-full pl-12 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all ${
                     errors.email
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-200 focus:border-purple-500'
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-purple-500"
                   }`}
                 />
               </div>
@@ -191,39 +220,37 @@ export default function Register() {
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  name="no_telp"
+                  value={formData.no_telp}
                   onChange={handleChange}
                   placeholder="08123456789"
                   className={`w-full pl-12 pr-4 py-3 border-2 rounded-lg focus:outline-none transition-all ${
-                    errors.phone
+                    errors.no_telp
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-200 focus:border-purple-500'
                   }`}
                 />
               </div>
-              {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+              {errors.no_telp && (
+                <p className="text-red-500 text-xs mt-1">{errors.no_telp}</p>
               )}
             </div>
 
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Minimal 6 karakter"
                   className={`w-full pl-12 pr-12 py-3 border-2 rounded-lg focus:outline-none transition-all ${
                     errors.password
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-200 focus:border-purple-500'
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-purple-500"
                   }`}
                 />
                 <button
@@ -231,7 +258,11 @@ export default function Register() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -247,15 +278,15 @@ export default function Register() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Ketik ulang password"
                   className={`w-full pl-12 pr-12 py-3 border-2 rounded-lg focus:outline-none transition-all ${
                     errors.confirmPassword
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-200 focus:border-purple-500'
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-purple-500"
                   }`}
                 />
                 <button
@@ -263,11 +294,17 @@ export default function Register() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -280,13 +317,13 @@ export default function Register() {
                   onChange={(e) => {
                     setAcceptPrivacy(e.target.checked);
                     if (e.target.checked && errors.privacy) {
-                      setErrors(prev => ({ ...prev, privacy: '' }));
+                      setErrors((prev) => ({ ...prev, privacy: "" }));
                     }
                   }}
                   className="w-5 h-5 mt-0.5 text-purple-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer"
                 />
                 <span className="text-sm text-gray-700">
-                  Saya telah membaca dan menyetujui{' '}
+                  Saya telah membaca dan menyetujui{" "}
                   <button
                     type="button"
                     onClick={() => setShowPrivacyDialog(true)}
@@ -297,7 +334,9 @@ export default function Register() {
                 </span>
               </label>
               {errors.privacy && (
-                <p className="text-red-500 text-xs mt-2 ml-8">{errors.privacy}</p>
+                <p className="text-red-500 text-xs mt-2 ml-8">
+                  {errors.privacy}
+                </p>
               )}
             </div>
 
@@ -317,7 +356,9 @@ export default function Register() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Sudah punya akun?</span>
+              <span className="px-4 bg-white text-gray-500">
+                Sudah punya akun?
+              </span>
             </div>
           </div>
 
@@ -350,11 +391,16 @@ export default function Register() {
             <section>
               <h3 className="font-bold mb-2">1. Pengumpulan Data</h3>
               <p className="text-gray-600 leading-relaxed mb-2">
-                Kami mengumpulkan data pribadi yang Anda berikan saat mendaftar dan menggunakan layanan Go PTN, termasuk:
+                Kami mengumpulkan data pribadi yang Anda berikan saat mendaftar
+                dan menggunakan layanan Go PTN, termasuk:
               </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-1">
-                <li>Nama lengkap dan informasi kontak (email, nomor telepon)</li>
-                <li>Data akademik (nama sekolah, rata-rata raport, hasil try out)</li>
+                <li>
+                  Nama lengkap dan informasi kontak (email, nomor telepon)
+                </li>
+                <li>
+                  Data akademik (nama sekolah, rata-rata raport, hasil try out)
+                </li>
                 <li>Preferensi universitas dan jurusan</li>
                 <li>Hasil tes potensi diri dan kepribadian</li>
               </ul>
@@ -366,30 +412,50 @@ export default function Register() {
                 Data yang kami kumpulkan digunakan untuk:
               </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-1">
-                <li>Menyediakan personalisasi rekomendasi universitas dan jurusan</li>
-                <li>Analisis peluang keterima berdasarkan profil akademik Anda</li>
+                <li>
+                  Menyediakan personalisasi rekomendasi universitas dan jurusan
+                </li>
+                <li>
+                  Analisis peluang keterima berdasarkan profil akademik Anda
+                </li>
                 <li>Mengirimkan notifikasi jadwal penting pendaftaran PTN</li>
-                <li>Menyediakan analytics agregat kepada universitas mitra (tanpa identitas pribadi)</li>
+                <li>
+                  Menyediakan analytics agregat kepada universitas mitra (tanpa
+                  identitas pribadi)
+                </li>
                 <li>Meningkatkan kualitas layanan kami</li>
               </ul>
             </section>
 
             <section>
-              <h3 className="font-bold mb-2">3. Berbagi Data dengan Pihak Ketiga</h3>
+              <h3 className="font-bold mb-2">
+                3. Berbagi Data dengan Pihak Ketiga
+              </h3>
               <p className="text-gray-600 leading-relaxed mb-2">
                 Kami hanya berbagi data Anda dengan:
               </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-1">
-                <li><strong>Universitas Mitra:</strong> Data agregat dan anonim untuk pemetaan minat calon mahasiswa</li>
-                <li><strong>Perguruan Tinggi Swasta:</strong> Analytics peminatan jurusan tanpa data pribadi identifiable</li>
-                <li>Kami TIDAK menjual data pribadi Anda kepada pihak ketiga manapun</li>
+                <li>
+                  <strong>Universitas Mitra:</strong> Data agregat dan anonim
+                  untuk pemetaan minat calon mahasiswa
+                </li>
+                <li>
+                  <strong>Perguruan Tinggi Swasta:</strong> Analytics peminatan
+                  jurusan tanpa data pribadi identifiable
+                </li>
+                <li>
+                  Kami TIDAK menjual data pribadi Anda kepada pihak ketiga
+                  manapun
+                </li>
               </ul>
             </section>
 
             <section>
               <h3 className="font-bold mb-2">4. Keamanan Data</h3>
               <p className="text-gray-600 leading-relaxed">
-                Kami menggunakan enkripsi dan protokol keamanan standar industri untuk melindungi data pribadi Anda. Namun, tidak ada sistem yang 100% aman, dan kami tidak dapat menjamin keamanan absolut.
+                Kami menggunakan enkripsi dan protokol keamanan standar industri
+                untuk melindungi data pribadi Anda. Namun, tidak ada sistem yang
+                100% aman, dan kami tidak dapat menjamin keamanan absolut.
               </p>
             </section>
 
@@ -409,21 +475,27 @@ export default function Register() {
             <section>
               <h3 className="font-bold mb-2">6. Model Akses Premium</h3>
               <p className="text-gray-600 leading-relaxed">
-                Dengan melengkapi data personalisasi, Anda mendapatkan akses premium gratis ke semua fitur Go PTN. Model data sebagai pembayaran ini memungkinkan kami menyediakan layanan berkualitas tanpa biaya finansial.
+                Dengan melengkapi data personalisasi, Anda mendapatkan akses
+                premium gratis ke semua fitur Go PTN. Model data sebagai
+                pembayaran ini memungkinkan kami menyediakan layanan berkualitas
+                tanpa biaya finansial.
               </p>
             </section>
 
             <section>
               <h3 className="font-bold mb-2">7. Perubahan Kebijakan</h3>
               <p className="text-gray-600 leading-relaxed">
-                Kami dapat memperbarui kebijakan privasi ini sewaktu-waktu. Perubahan signifikan akan diberitahukan melalui email atau notifikasi di aplikasi.
+                Kami dapat memperbarui kebijakan privasi ini sewaktu-waktu.
+                Perubahan signifikan akan diberitahukan melalui email atau
+                notifikasi di aplikasi.
               </p>
             </section>
 
             <section>
               <h3 className="font-bold mb-2">8. Hubungi Kami</h3>
               <p className="text-gray-600 leading-relaxed">
-                Jika Anda memiliki pertanyaan tentang kebijakan privasi ini, hubungi kami di:
+                Jika Anda memiliki pertanyaan tentang kebijakan privasi ini,
+                hubungi kami di:
                 <br />
                 Email: privacy@goptn.id
                 <br />
@@ -437,7 +509,7 @@ export default function Register() {
                   setAcceptPrivacy(true);
                   setShowPrivacyDialog(false);
                   if (errors.privacy) {
-                    setErrors(prev => ({ ...prev, privacy: '' }));
+                    setErrors((prev) => ({ ...prev, privacy: "" }));
                   }
                 }}
                 className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
