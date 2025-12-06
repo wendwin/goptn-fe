@@ -2,7 +2,7 @@
 import Hero from "./components/home/Hero";
 import EnteranceInfor from "./components/home/EntranceInfor";
 import PremiumFeature from "./components/home/PremiumFeature";
-import { Footer } from "./components/home/Footer";
+import Footer from "./components/home/Footer";
 
 export default function HomePage() {
   return (

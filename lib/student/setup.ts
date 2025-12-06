@@ -11,6 +11,19 @@ export interface SetupStudentRequestBody {
   entry_paths: string[];
 }
 
+export interface PersonalisasiData {
+  sekolah: string;
+  kota: string;
+  rataRaport: string;
+  pilihanPTN1: string;
+  jurusan1: string;
+  pilihanPTN2: string;
+  jurusan2: string;
+  pilihanPTN3: string;
+  jurusan3: string;
+  jalur: string[];
+}
+
 
 export async function setupStudent(payload: SetupStudentRequestBody) {
   const token = localStorage.getItem("token");

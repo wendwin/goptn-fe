@@ -9,21 +9,7 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
-import { SetupStudentRequestBody, setupStudent } from "@/lib/student/setup";
-
-
-export interface PersonalisasiData {
-  sekolah: string;
-  kota: string;
-  rataRaport: string;
-  pilihanPTN1: string;
-  jurusan1: string;
-  pilihanPTN2: string;
-  jurusan2: string;
-  pilihanPTN3: string;
-  jurusan3: string;
-  jalur: string[];
-}
+import { SetupStudentRequestBody, PersonalisasiData, setupStudent } from "@/lib/student/setup";
 
 export default function OnboardingPersonalisasi() {
   const [step, setStep] = useState(1);
