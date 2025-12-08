@@ -1,3 +1,7 @@
-﻿export default function Page() {
-  return <div>Beasiswa</div>;
+﻿import { KelolaBeasiswaSection } from "@/app/components/dashboard-admin/KelolaBeasiswaSection";
+
+export default function Page() {
+  return (
+    <KelolaBeasiswaSection />
+  )
 }
