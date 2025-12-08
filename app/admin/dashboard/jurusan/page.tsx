@@ -1,3 +1,7 @@
-﻿export default function Page() {
-  return <div>Jurusan</div>;
+﻿import { KelolaJurusanSection } from "../../../components/dashboard-admin/KelolaJurusanSection";
+
+export default function Page() {
+  return (
+    <KelolaJurusanSection />
+  )
 }

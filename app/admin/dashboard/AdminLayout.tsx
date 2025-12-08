@@ -70,12 +70,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: Brain,
       href: "/admin/dashboard/tespotensi",
     },
-    {
-      id: "info",
-      label: "Kelola Informasi",
-      icon: Info,
-      href: "/admin/dashboard/info",
-    },
+    // {
+    //   id: "info",
+    //   label: "Kelola Informasi",
+    //   icon: Info,
+    //   href: "/admin/dashboard/info",
+    // },
     {
       id: "siswa",
       label: "Data Siswa",
