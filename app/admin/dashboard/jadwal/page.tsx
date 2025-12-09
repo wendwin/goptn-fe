@@ -1,17 +1,11 @@
 ﻿"use client";
 
 import { useState } from "react";
+import AddJadwalModal, { JadwalForm } from "../../../components/dashboard-admin/AddJadwalModal";
 import { Plus, Eye, EyeOff, Edit2, Trash2 } from "lucide-react";
 
-interface Jadwal {
+interface Jadwal extends JadwalForm {
   id: number;
-  jalur: string;
-  tipeJalur: "Nasional" | "Mandiri";
-  kampusNama?: string;
-  tanggalMulai: string;
-  tanggalAkhir: string;
-  status: "Aktif" | "Tidak Aktif";
-  visible: boolean;
 }
 
 export default function JadwalPage() {
@@ -24,6 +18,8 @@ export default function JadwalPage() {
       tanggalAkhir: "2025-07-15",
       status: "Aktif",
       visible: true,
+      deskripsi: "",
+      tahapan: [],
     },
     {
       id: 2,
@@ -33,6 +29,8 @@ export default function JadwalPage() {
       tanggalAkhir: "2025-08-15",
       status: "Tidak Aktif",
       visible: false,
+      deskripsi: "",
+      tahapan: [],
     },
     {
       id: 3,
@@ -43,28 +41,104 @@ export default function JadwalPage() {
       tanggalAkhir: "2025-09-15",
       status: "Aktif",
       visible: true,
+      deskripsi: "",
+      tahapan: [],
     },
   ]);
 
   const [showAddJadwalModal, setShowAddJadwalModal] = useState(false);
+  const [newJadwal, setNewJadwal] = useState<JadwalForm | null>(null);
+
+  const mockKampusList = [
+    { id: 1, nama: "Universitas Indonesia" },
+    { id: 2, nama: "Universitas Gadjah Mada" },
+    { id: 3, nama: "Institut Teknologi Bandung" },
+  ];
+
+  const defaultNewJadwal: JadwalForm = {
+    tipeJalur: "Nasional",
+    jalur: "",
+    tanggalMulai: "",
+    tanggalAkhir: "",
+    status: "Aktif",
+    visible: true,
+    deskripsi: "",
+    tahapan: [],
+  };
 
   const toggleVisibility = (id: number) => {
-    setJadwalData((prev) =>
-      prev.map((j) =>
-        j.id === id ? { ...j, visible: !j.visible } : j
-      )
+    setJadwalData(prev =>
+      prev.map(j => (j.id === id ? { ...j, visible: !j.visible } : j))
     );
   };
 
   const handleEditJadwal = (jadwal: Jadwal) => {
-    console.log("Edit jadwal:", jadwal);
-    // TODO: open modal prefilled dengan data jadwal
+    setNewJadwal(jadwal);
+    setShowAddJadwalModal(true);
   };
 
   const handleDeleteJadwal = (id: number) => {
     if (confirm("Apakah yakin ingin menghapus jadwal ini?")) {
-      setJadwalData((prev) => prev.filter((j) => j.id !== id));
+      setJadwalData(prev => prev.filter(j => j.id !== id));
     }
+  };
+
+  const handleAddJadwal = (jadwal: JadwalForm) => {
+    if ("id" in jadwal && jadwal.id) {
+      // Edit jadwal
+      setJadwalData(prev =>
+        prev.map(j =>
+          j.id === jadwal.id
+            ? { ...j, ...jadwal, id: j.id }
+            : j
+        )
+      );
+    } else {
+      // Tambah jadwal baru
+      const newId = jadwalData.length
+        ? Math.max(...jadwalData.map(j => j.id)) + 1
+        : 1;
+      setJadwalData(prev => [...prev, { ...jadwal, id: newId }]);
+    }
+    setShowAddJadwalModal(false);
+    setNewJadwal(null);
+  };
+
+  const addTahapan = () => {
+    setNewJadwal(prev =>
+      prev
+        ? {
+            ...prev,
+            tahapan: [
+              ...(prev.tahapan || []),
+              {
+                id: Date.now(), // or use a better unique id generator
+                nama: "",
+                tanggalMulai: "",
+                tanggalAkhir: "",
+              },
+            ],
+          }
+        : prev
+    );
+  };
+
+  const removeTahapan = (index: number) => {
+    setNewJadwal(prev => {
+      if (!prev) return prev;
+      const updated = [...(prev.tahapan || [])];
+      updated.splice(index, 1);
+      return { ...prev, tahapan: updated };
+    });
+  };
+
+  const updateTahapan = (index: number, value: any) => {
+    setNewJadwal(prev => {
+      if (!prev) return prev;
+      const updated = [...(prev.tahapan || [])];
+      updated[index] = value;
+      return { ...prev, tahapan: updated };
+    });
   };
 
   return (
@@ -76,7 +150,10 @@ export default function JadwalPage() {
           <p className="text-gray-600">Atur jadwal yang ditampilkan di halaman beranda</p>
         </div>
         <button
-          onClick={() => setShowAddJadwalModal(true)}
+          onClick={() => {
+            setNewJadwal(defaultNewJadwal);
+            setShowAddJadwalModal(true);
+          }}
           className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
@@ -199,6 +276,18 @@ export default function JadwalPage() {
           untuk mengontrol tampilan tanpa menghapus data.
         </p>
       </div>
+
+      <AddJadwalModal
+        show={showAddJadwalModal}
+        setShow={setShowAddJadwalModal}
+        newJadwal={newJadwal || defaultNewJadwal}
+        setNewJadwal={setNewJadwal as React.Dispatch<React.SetStateAction<JadwalForm | null>>}
+        mockKampusList={mockKampusList}
+        addTahapan={addTahapan}
+        removeTahapan={removeTahapan}
+        updateTahapan={updateTahapan}
+        handleAddJadwal={handleAddJadwal}
+      />
     </div>
   );
 }
