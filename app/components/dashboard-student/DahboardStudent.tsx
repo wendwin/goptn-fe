@@ -34,6 +34,8 @@ import { getStudentMe } from "@/lib/student/me";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { updateStudentNotification } from "@/lib/student/notification";
+import { Kampus } from "@/types/kampus";
+import { getKampus } from "@/lib/kampus/kampus";
 
 export function DashboardStudent() {
   const [hasTakenTryout, setHasTakenTryout] = useState(false);
@@ -62,30 +64,27 @@ export function DashboardStudent() {
   const [selectedJalurs, setSelectedJalurs] = useState<string[]>([]);
   const [selectedMandiriKampus, setSelectedMandiriKampus] = useState("");
 
+  const [kampusList, setKampusList] = useState<Kampus[]>([]);
+  // const [selectedJalurs, setSelectedJalurs] = useState<string[]>([]);
+  // const [selectedMandiriKampus, setSelectedMandiriKampus] = useState("");
+
   // Mock data untuk jalur mandiri per kampus
-  const jalurMandiriOptions = [
-    { id: 3, jalur: "Jalur Mandiri UI", kampusNama: "Universitas Indonesia" },
-    {
-      id: 4,
-      jalur: "Jalur Mandiri ITB",
-      kampusNama: "Institut Teknologi Bandung",
-    },
-    {
-      id: 5,
-      jalur: "Jalur Mandiri UGM",
-      kampusNama: "Universitas Gadjah Mada",
-    },
-    {
-      id: 6,
-      jalur: "Jalur Mandiri ITS",
-      kampusNama: "Institut Teknologi Sepuluh Nopember",
-    },
-    {
-      id: 7,
-      jalur: "Jalur Mandiri UNAIR",
-      kampusNama: "Universitas Airlangga",
-    },
-  ];
+  useEffect(() => {
+    getKampus().then((data) => setKampusList(data));
+  }, []);
+
+  // hasil dari kampus API → filter kampus yang punya jalur Mandiri
+  const jalurMandiriOptions = kampusList
+    .filter((k) => {
+      const jalur: string[] = JSON.parse(k.jalur_masuk || "[]");
+      return jalur.includes("Mandiri");
+    })
+    .map((k) => ({
+      id: k.id, // number
+      kampusNama: k.nama_kampus,
+      // optional: shortCode jika backend butuh, misal "ui", "ugm"
+      code: k.akronim?.toLowerCase() || "",
+    }));
 
   //   const [editData, setEditData] = useState<PersonalisasiData>(initialData);
 
@@ -439,44 +438,49 @@ export function DashboardStudent() {
     }
 
     if (selectedJalurs.includes("Mandiri") && !selectedMandiriKampus) {
-      toast.error("Gagal! Pilih jalur mandiri kampus terlebih dahulu.");
+      toast.error("Gagal! Pilih kampus jalur mandiri.");
       return;
     }
 
     try {
-      // Build notification_type sesuai pilihan jalur
       const notificationTypes: string[] = [];
+      let campusId: number | null = null;
 
-      selectedJalurs.forEach((j) => {
-        if (j === "Mandiri") {
-          notificationTypes.push(selectedMandiriKampus); // contoh: "mandiri_ui"
+      selectedJalurs.forEach((jalur) => {
+        if (jalur === "Mandiri") {
+          notificationTypes.push("mandiri");
+          campusId = Number(selectedMandiriKampus); // guaranteed valid because of check above
         } else {
-          notificationTypes.push(j.toLowerCase()); // snbp, snbt, dll
+          notificationTypes.push(jalur.toLowerCase()); // "snbp" / "snbt"
         }
       });
 
-      // CALL PATCH API DI SINI
-      await updateStudentNotification({
+      // tipe persis sesuai signature updateStudentNotification
+      type UpdateBody = {
+        wants_notification: boolean;
+        notification_type: string[];
+        campus_id: number | null;
+      };
+
+      const payload: UpdateBody = {
         wants_notification: true,
         notification_type: notificationTypes,
-        campus_id: null, // atau isi jika ada
-      });
+        campus_id: campusId, // bisa number atau null (tidak ada undefined)
+      };
 
-      toast.success("Pengaturan notifikasi berhasil diperbarui!");
+      console.log("FINAL PAYLOAD:", payload);
 
-      // Reset modal state
+      await updateStudentNotification(payload);
+
+      toast.success("Pengaturan berhasil disimpan!");
       setShowJalurModal(false);
       setSelectedJalurs([]);
       setSelectedMandiriKampus("");
     } catch (error: unknown) {
       console.error(error);
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Gagal menyimpan pengaturan notifikasi";
-
-      toast.error(errorMessage);
+      const message =
+        error instanceof Error ? error.message : "Gagal menyimpan pengaturan";
+      toast.error(message);
     }
   };
 
@@ -1425,12 +1429,12 @@ export function DashboardStudent() {
                     </label>
                     <select
                       value={selectedMandiriKampus}
-                      onChange={(e) => setSelectedMandiriKampus(e.target.value)}
+                      onChange={(e) => setSelectedMandiriKampus(e.target.value)} // menyimpan id sebagai string
                       className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm focus:outline-none focus:border-orange-500 bg-white"
                     >
                       <option value="">-- Pilih Kampus --</option>
                       {jalurMandiriOptions.map((option) => (
-                        <option key={option.id} value={option.jalur}>
+                        <option key={option.id} value={String(option.id)}>
                           {option.kampusNama}
                         </option>
                       ))}
@@ -1447,16 +1451,25 @@ export function DashboardStudent() {
                   Jalur yang Dipilih:
                 </h5>
                 <div className="flex flex-wrap gap-2">
-                  {selectedJalurs.map((jalur, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
-                    >
-                      {jalur === "Mandiri" && selectedMandiriKampus
-                        ? selectedMandiriKampus
-                        : jalur}
-                    </span>
-                  ))}
+                  {selectedJalurs.map((jalur, idx) => {
+                    let label = jalur;
+
+                    if (jalur === "Mandiri" && selectedMandiriKampus) {
+                      const kampus = jalurMandiriOptions.find(
+                        (x) => String(x.id) === selectedMandiriKampus
+                      );
+                      if (kampus) label = `Mandiri - ${kampus.kampusNama}`;
+                    }
+
+                    return (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
+                      >
+                        {label}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}
