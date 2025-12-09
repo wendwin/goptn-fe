@@ -20,6 +20,8 @@ import {
 } from "../components/ui/dialog";
 import { registerStudent } from "../../lib/auth/register";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 export default function Register() {
   const router = useRouter();
@@ -30,14 +32,14 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    no_telp: '',
+    no_telp: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     email: "",
-    no_telp: '',
+    no_telp: "",
     password: "",
     confirmPassword: "",
     privacy: "",
@@ -47,7 +49,7 @@ export default function Register() {
     const newErrors = {
       name: "",
       email: "",
-      no_telp: '',
+      no_telp: "",
       password: "",
       confirmPassword: "",
       privacy: "",
@@ -73,10 +75,10 @@ export default function Register() {
     // Validate phone
     const phoneRegex = /^[0-9]{10,13}$/;
     if (!formData.no_telp) {
-      newErrors.no_telp = 'Nomor telepon harus diisi';
+      newErrors.no_telp = "Nomor telepon harus diisi";
       isValid = false;
-    } else if (!phoneRegex.test(formData.no_telp.replace(/[\s-]/g, ''))) {
-      newErrors.no_telp = 'Nomor telepon tidak valid (10-13 digit)';
+    } else if (!phoneRegex.test(formData.no_telp.replace(/[\s-]/g, ""))) {
+      newErrors.no_telp = "Nomor telepon tidak valid (10-13 digit)";
       isValid = false;
     }
 
@@ -124,17 +126,19 @@ export default function Register() {
 
       console.log("Register success:", response);
 
-      alert("Pendaftaran berhasil! Silakan login.");
+      toast.success("Pendaftaran berhasil! Silakan login.");
 
-      router.push("/login");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (err) {
-    let message = "Terjadi kesalahan";
+      let message = "Terjadi kesalahan";
 
-    if (err instanceof Error) {
-      message = err.message || message;
+      if (err instanceof Error) {
+        message = err.message || message;
+      }
+      toast.error(message);
     }
-    alert(message);
-  }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,8 +231,8 @@ export default function Register() {
                   placeholder="08123456789"
                   className={`w-full pl-12 pr-4 py-2 border-2 rounded-lg focus:outline-none transition-all ${
                     errors.no_telp
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-200 focus:border-purple-500'
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-purple-500"
                   }`}
                 />
               </div>
@@ -521,6 +525,8 @@ export default function Register() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { loginStudent } from "@/lib/auth/login";
 import { getStudentMe } from "@/lib/student/me";
 import Image from "next/image";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 export default function Login() {
   const router = useRouter();
@@ -30,19 +32,22 @@ export default function Login() {
       const me = await getStudentMe();
       console.log("me", me);
 
-      alert("Login berhasil!");
+      toast.success("Login berhasil!");
 
-      const notDataStudent = 
-        me.profile == null || 
+      const notDataStudent =
+        me.profile == null ||
         me.ptn_choices.length === 0 ||
         me.entry_paths.length === 0;
 
       if (notDataStudent) {
-        router.push("/personalisasi");
+        setTimeout(() => {
+          router.push("/personalisasi");
+        }, 2000);
       } else {
-        router.push("/dashboard");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000);
       }
-
     } catch (err) {
       let message = "Terjadi kesalahan";
 
@@ -50,7 +55,7 @@ export default function Login() {
         message = err.message || message;
       }
 
-      alert(message);
+      toast.error(message);
     }
   };
 
@@ -155,6 +160,8 @@ export default function Login() {
           </button>
         </div>
       </div>
+
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }
